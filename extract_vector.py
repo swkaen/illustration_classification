@@ -1,5 +1,6 @@
 import sqlite3
 from sqlite_wrapper import create_table
+from sqlite_wrapper import insert_data
 import numpy as np
 import pandas as pd
 from keras.applications.vgg16 import VGG16
@@ -56,28 +57,34 @@ def get_image_path_list(dataset_num):
 if __name__ == "__main__":
 
     dimention = 255
-    dataset_num = "008"
+    dataset_num = "005"
     table_name = "DataSet_" + dataset_num
 
     img_path_list = get_image_path_list(dataset_num=dataset_num)
     img_path_num = len(img_path_list)
 
-#    columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
-#    for i in range(1, dimention + 1):
-#        feature = "feature" + str(i) + " REAL,"
-#    conn = sqlite3.connect('illust_vector.db')
-#    cur = conn.cursor()
-#    create_table(conn, cur, table_name, columns[:-1])
+    columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
+    for i in range(1, dimention + 1):
+        feature = "feature" + str(i) + " REAL,"
+        columns += feature
+    conn = sqlite3.connect('illust_vector.db')
+    cur = conn.cursor()
+    create_table(conn, cur, table_name, columns[:-1])
 
     for i, img_path in enumerate(img_path_list):
         model = set_image_to_model(preprocess_image(img_path))
         output = extract_output(model)
         gram = gram_matrix(output)
         style_vector = extract_style_vector(gram)
-#        image_id = img_path.split("\\")[1][:-4]
+        image_id = img_path.split("\\")[1][:-4]
+        ids = [i+1, image_id]
+        data = tuple(ids + list(style_vector))
+        print(data)
+        insert_data(conn, cur, table_name, data)
         print(img_path.split("\\")[1][:-4])
         print("(" + str(i+1)+'/'+str(img_path_num) + ")")
 
+    conn.close()
 
 
 
