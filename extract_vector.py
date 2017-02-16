@@ -58,29 +58,30 @@ def create_base_csv(dim, dataset_num):
 if __name__ == "__main__":
     DIMENTION = 255
     DATASET_NUM = "008"
-    csv_name = "dataset_" + DATASET_NUM + ".csv"
+    name = "dataset_" + DATASET_NUM + ".csv"
     create_base_csv(DIMENTION, dataset_num=DATASET_NUM)
     img_path_list = get_image_path_list(dataset_num=DATASET_NUM)
     img_path_num = len(img_path_list)
 
     conn = sqlite3.connect()
+    cur = conn.cursor()
 
     for i, img_path in enumerate(img_path_list):
         model = set_image_to_model(preprocess_image(img_path))
         output = extract_output(model)
         gram = gram_matrix(output)
         style_vector = extract_style_vector(gram)
-        df = pd.read_csv(csv_name)
+        df = pd.read_csv(name)
         df1 = pd.DataFrame([style_vector], columns=list(df.columns))
         df = df.append(df1)
-        df.to_csv(csv_name, index=False)
+        df.to_csv(name, index=False)
         print("(" + str(i+1)+'/'+str(img_path_num) + ")")
 
-    df = pd.read_csv(csv_name)
+    df = pd.read_csv(name)
     image_index = [int(path[23:-4]) for path in img_path_list]
     print(image_index)
     df.index = image_index
-    df.to_csv(csv_name)
+    df.to_csv(name)
     print('Done and done.')
 
 
