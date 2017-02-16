@@ -1,4 +1,5 @@
 import sqlite3
+from sqlite_wrapper import create_table
 import numpy as np
 import pandas as pd
 from keras.applications.vgg16 import VGG16
@@ -55,16 +56,20 @@ def create_base_csv(dim, dataset_num):
         print('This file already exist.')
 
 
+
 if __name__ == "__main__":
     DIMENTION = 255
     DATASET_NUM = "008"
-    name = "dataset_" + DATASET_NUM + ".csv"
-    create_base_csv(DIMENTION, dataset_num=DATASET_NUM)
+    name = "DataSet_" + DATASET_NUM
     img_path_list = get_image_path_list(dataset_num=DATASET_NUM)
     img_path_num = len(img_path_list)
-
-    conn = sqlite3.connect()
+    columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
+    for i in range(1, DIMENTION + 1):
+        feature = "feature" + str(i) + " REAL, "
+    conn = sqlite3.connect('illust_vector.db')
     cur = conn.cursor()
+    cur.execute("create TABLE {name}({columns})".format(name, columns))
+
 
     for i, img_path in enumerate(img_path_list):
         model = set_image_to_model(preprocess_image(img_path))
