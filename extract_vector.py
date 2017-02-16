@@ -11,6 +11,7 @@ import time
 
 img_path = "./datasets/dataset_005/579519.jpg"
 
+
 def preprocess_image(img_path):
     img = image.load_img(img_path, target_size=(400, 400))
     img = image.img_to_array(img)
@@ -18,10 +19,12 @@ def preprocess_image(img_path):
     img = preprocess_input(img)
     return img
 
+
 def set_image_to_model(img):
     img_tensor = K.variable(img)
     model = VGG16(input_tensor=img_tensor, weights='imagenet', include_top=False)
     return model
+
 
 def extract_output(model):
     outputs_dict = dict([(layer.name, layer.output) for layer in model.layers])
@@ -29,16 +32,19 @@ def extract_output(model):
     output = layer_features[0, :, :, :]
     return output
 
+
 def gram_matrix(output):
     features = K.batch_flatten(K.permute_dimensions(output, (2, 0, 1)))
     gram = K.dot(features, K.transpose(features))
     gram = K.eval(gram)
     return gram
 
+
 def extract_style_vector(gram):
     style_vector = np.r_[gram[:, 0], gram[gram.shape[0]-1, 1:]]
     style_vector = style_vector / np.linalg.norm(style_vector)
     return style_vector
+
 
 def get_image_path_list(dataset_num):
     if len(dataset_num) != 3:
