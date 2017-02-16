@@ -58,35 +58,37 @@ def create_base_csv(dim, dataset_num):
 
 
 if __name__ == "__main__":
-    DIMENTION = 255
-    DATASET_NUM = "008"
-    name = "DataSet_" + DATASET_NUM
-    img_path_list = get_image_path_list(dataset_num=DATASET_NUM)
+
+    dimention = 255
+    dataset_num = "008"
+    table_name = "DataSet_" + dataset_num
+
+    img_path_list = get_image_path_list(dataset_num=dataset_num)
     img_path_num = len(img_path_list)
+
     columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
-    for i in range(1, DIMENTION + 1):
-        feature = "feature" + str(i) + " REAL, "
+    for i in range(1, dimention + 1):
+        feature = "feature" + str(i) + " REAL,"
     conn = sqlite3.connect('illust_vector.db')
     cur = conn.cursor()
-    cur.execute("create TABLE {name}({columns})".format(name, columns))
-
+    create_table(conn, cur, table_name, columns[:-1])
 
     for i, img_path in enumerate(img_path_list):
         model = set_image_to_model(preprocess_image(img_path))
         output = extract_output(model)
         gram = gram_matrix(output)
         style_vector = extract_style_vector(gram)
-        df = pd.read_csv(name)
+        df = pd.read_csv(table_name)
         df1 = pd.DataFrame([style_vector], columns=list(df.columns))
         df = df.append(df1)
-        df.to_csv(name, index=False)
+        df.to_csv(table_name, index=False)
         print("(" + str(i+1)+'/'+str(img_path_num) + ")")
 
-    df = pd.read_csv(name)
+    df = pd.read_csv(table_name)
     image_index = [int(path[23:-4]) for path in img_path_list]
     print(image_index)
     df.index = image_index
-    df.to_csv(name)
+    df.to_csv(table_name)
     print('Done and done.')
 
 
