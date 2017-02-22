@@ -8,9 +8,6 @@ from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
 from keras import backend as K
 from glob import glob
-import time
-
-img_path = "./datasets/dataset_005/579519.jpg"
 
 
 def preprocess_image(img_path):
@@ -57,21 +54,22 @@ def get_image_path_list(dataset_num):
 if __name__ == "__main__":
 
     dimention = 255
-    dataset_num = "005"
+    dataset_num = "003"
     table_name = "DataSet_" + dataset_num
 
     img_path_list = get_image_path_list(dataset_num=dataset_num)
     img_path_num = len(img_path_list)
 
-    columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
-    for i in range(1, dimention + 1):
-        feature = "feature" + str(i) + " REAL,"
-        columns += feature
-    conn = sqlite3.connect('illust_vector.db')
-    cur = conn.cursor()
-    create_table(conn, cur, table_name, columns[:-1])
+#    columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
+#    for i in range(1, dimention + 1):
+#        feature = "feature" + str(i) + " REAL,"
+#        columns += feature
+#    conn = sqlite3.connect('illust_vector.db')
+#    cur = conn.cursor()
+#    create_table(conn, cur, table_name, columns[:-1])
 
     for i, img_path in enumerate(img_path_list):
+        print(img_path)
         model = set_image_to_model(preprocess_image(img_path))
         output = extract_output(model)
         gram = gram_matrix(output)
@@ -80,11 +78,11 @@ if __name__ == "__main__":
         ids = [i+1, image_id]
         data = tuple(ids + list(style_vector))
         print(data)
-        insert_data(conn, cur, table_name, data)
+#        insert_data(conn, cur, table_name, data)
         print(img_path.split("\\")[1][:-4])
         print("(" + str(i+1)+'/'+str(img_path_num) + ")")
 
-    conn.close()
+#    conn.close()
 
 
 
