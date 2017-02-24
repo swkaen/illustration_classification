@@ -8,6 +8,7 @@ from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
 from keras import backend as K
 from glob import glob
+from keras.layers import Input
 
 
 def preprocess_image(img_path):
@@ -20,11 +21,13 @@ def preprocess_image(img_path):
 
 def set_image_to_model(img):
     img_tensor = K.variable(img)
+    img_tensor = Input(tensor=img_tensor)
     model = VGG16(input_tensor=img_tensor, weights='imagenet', include_top=False)
     return model
 
 
 def extract_output(model):
+    print(K.eval(model.layers[0].output).shape)
     outputs_dict = dict([(layer.name, layer.output) for layer in model.layers])
     layer_features = outputs_dict["block2_conv1"]
     output = layer_features[0, :, :, :]
@@ -59,6 +62,7 @@ if __name__ == "__main__":
 
     img_path_list = get_image_path_list(dataset_num=dataset_num)
     img_path_num = len(img_path_list)
+
 
 #    columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
 #    for i in range(1, dimention + 1):
