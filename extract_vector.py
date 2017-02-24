@@ -54,39 +54,55 @@ def get_image_path_list(dataset_num):
     img_path_list = glob("./datasets" + "/dataset_" + dataset_num + "/*.jpg")
     return img_path_list
 
-if __name__ == "__main__":
 
+def id_writer(img_id):
+    path = img_id + "\n"
+    with open('idlist', "a") as file:
+        file.write(path)
+
+
+if __name__ == "__main__":
+    data_count = 0
     dimention = 255
-    dataset_num = "003"
+    dataset_num = "007"
     table_name = "DataSet_" + dataset_num
 
     img_path_list = get_image_path_list(dataset_num=dataset_num)
     img_path_num = len(img_path_list)
+    with open('idlist', "r") as file:
+        id_list = file.read()
+    extracted_id_list = id_list.split("\n")
 
 
-#    columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
-#    for i in range(1, dimention + 1):
-#        feature = "feature" + str(i) + " REAL,"
-#        columns += feature
-#    conn = sqlite3.connect('illust_vector.db')
-#    cur = conn.cursor()
-#    create_table(conn, cur, table_name, columns[:-1])
+    columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
+    for i in range(1, dimention + 1):
+        feature = "feature" + str(i) + " REAL,"
+        columns += feature
+    conn = sqlite3.connect('illust_vector.db')
+    cur = conn.cursor()
+    create_table(conn, cur, table_name, columns[:-1])
 
     for i, img_path in enumerate(img_path_list):
-        print(img_path)
-        model = set_image_to_model(preprocess_image(img_path))
-        output = extract_output(model)
-        gram = gram_matrix(output)
-        style_vector = extract_style_vector(gram)
-        image_id = img_path.split("\\")[1][:-4]
-        ids = [i+1, image_id]
-        data = tuple(ids + list(style_vector))
-        print(data)
-#        insert_data(conn, cur, table_name, data)
-        print(img_path.split("\\")[1][:-4])
-        print("(" + str(i+1)+'/'+str(img_path_num) + ")")
+        if data_count >= 40:
+            break
 
-#    conn.close()
+        image_id = img_path.split("\\")[1][:-4]
+        if not image_id in extracted_id_list:
+            print(image_id)
+            model = set_image_to_model(preprocess_image(img_path))
+            output = extract_output(model)
+            gram = gram_matrix(output)
+            style_vector = extract_style_vector(gram)
+            ids = [i+1, image_id]
+            data = tuple(ids + list(style_vector))
+            print(data)
+            insert_data(conn, cur, table_name, data)
+            print("(" + str(i+1)+'/'+str(img_path_num) + ")")
+            id_writer(image_id)
+            data_count += 1
+        else:
+            continue
+    conn.close()
 
 
 
