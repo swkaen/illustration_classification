@@ -64,7 +64,7 @@ def id_writer(img_id):
 if __name__ == "__main__":
     data_count = 0
     dimention = 255
-    dataset_num = "007"
+    dataset_num = "008"
     table_name = "DataSet_" + dataset_num
 
     img_path_list = get_image_path_list(dataset_num=dataset_num)
