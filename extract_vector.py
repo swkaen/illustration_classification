@@ -29,9 +29,9 @@ def set_image_to_model(img):
 def extract_output(model):
     print(K.eval(model.layers[0].output).shape)
     outputs_dict = dict([(layer.name, layer.output) for layer in model.layers])
-    layer_features = outputs_dict["block2_conv1"]
-    output = layer_features[0, :, :, :]
-    return output
+#    layer_features = outputs_dict["block2_conv1"]
+#    output = layer_features[0, :, :, :]
+    return outputs_dict
 
 
 def gram_matrix(output):
@@ -51,7 +51,7 @@ def get_image_path_list(dataset_num):
     if len(dataset_num) != 3:
         print('Usage: dataset_001 -> 001')
         pass
-    img_path_list = glob("./datasets" + "/dataset_" + dataset_num + "/*.jpg")
+    img_path_list = glob("../datasets" + "/dataset_" + dataset_num + "/*.jpg")
     return img_path_list
 
 
@@ -63,9 +63,10 @@ def id_writer(img_id):
 
 if __name__ == "__main__":
     data_count = 0
-    dimention = 255
+    dimentions = [127, 255, 511, 1023, 1023]
     dataset_num = "008"
     table_name = "DataSet_" + dataset_num
+    extraction_targets = ["block1_conv1", "block2_conv1", "block3_conv1", "block4_conv1", "block5_conv1"]
 
     img_path_list = get_image_path_list(dataset_num=dataset_num)
     img_path_num = len(img_path_list)
@@ -74,35 +75,41 @@ if __name__ == "__main__":
     extracted_id_list = id_list.split("\n")
 
 
-    columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
-    for i in range(1, dimention + 1):
-        feature = "feature" + str(i) + " REAL,"
-        columns += feature
-    conn = sqlite3.connect('illust_vector.db')
-    cur = conn.cursor()
-    create_table(conn, cur, table_name, columns[:-1])
+    # columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
+    # for i in range(1, dimention + 1):
+    #     feature = "feature" + str(i) + " REAL,"
+    #     columns += feature
+    # conn = sqlite3.connect('illust_vector.db')
+    # cur = conn.cursor()
+    # create_table(conn, cur, table_name, columns[:-1])
 
     for i, img_path in enumerate(img_path_list):
-        if data_count >= 40:
+        if data_count >= 100:
             break
 
         image_id = img_path.split("\\")[1][:-4]
         if not image_id in extracted_id_list:
             print(image_id)
             model = set_image_to_model(preprocess_image(img_path))
-            output = extract_output(model)
-            gram = gram_matrix(output)
-            style_vector = extract_style_vector(gram)
-            ids = [i+1, image_id]
-            data = tuple(ids + list(style_vector))
-            print(data)
-            insert_data(conn, cur, table_name, data)
-            print("(" + str(i+1)+'/'+str(img_path_num) + ")")
+            outputs = extract_output(model)
+
+            for extraction_target in extraction_targets:
+                layer_features = outputs[extraction_target]
+                output = layer_features[0, :, :, :]
+                gram = gram_matrix(output)
+                style_vector = extract_style_vector(gram)
+                print(style_vector.shape)
+                ids = [i+1, image_id]
+                data = tuple(ids + list(style_vector))
+                print(data)
+#               insert_data(conn, cur, table_name, data)
+                print("(" + str(i+1)+'/'+str(img_path_num) + ")")
+
             id_writer(image_id)
             data_count += 1
         else:
             continue
-    conn.close()
+#    conn.close()
 
 
 
