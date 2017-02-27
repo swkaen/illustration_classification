@@ -27,11 +27,10 @@ def set_image_to_model(img):
 
 
 def extract_output(model):
-    print(K.eval(model.layers[0].output).shape)
     outputs_dict = dict([(layer.name, layer.output) for layer in model.layers])
-#    layer_features = outputs_dict["block2_conv1"]
-#    output = layer_features[0, :, :, :]
-    return outputs_dict
+    layer_features = outputs_dict["block1_conv1"]
+    output = layer_features[0, :, :, :]
+    return output
 
 
 def gram_matrix(output):
@@ -60,8 +59,7 @@ def id_writer(img_id):
     with open('idlist', "a") as file:
         file.write(path)
 
-
-if __name__ == "__main__":
+def main():
     data_count = 0
     dimentions = [127, 255, 511, 1023, 1023]
     dataset_num = "008"
@@ -73,6 +71,7 @@ if __name__ == "__main__":
     with open('idlist', "r") as file:
         id_list = file.read()
     extracted_id_list = id_list.split("\n")
+
 
 
     # columns = "id INTEGER PRIMARY KEY, image_id INTEGER, "
@@ -99,19 +98,30 @@ if __name__ == "__main__":
                 gram = gram_matrix(output)
                 style_vector = extract_style_vector(gram)
                 print(style_vector.shape)
-                ids = [i+1, image_id]
+                ids = [i + 1, image_id]
                 data = tuple(ids + list(style_vector))
                 print(data)
-#               insert_data(conn, cur, table_name, data)
-                print("(" + str(i+1)+'/'+str(img_path_num) + ")")
+                #               insert_data(conn, cur, table_name, data)
+                print("(" + str(i + 1) + '/' + str(img_path_num) + ")")
 
             id_writer(image_id)
             data_count += 1
         else:
             continue
-#    conn.close()
+            #    conn.close()
+
+if __name__ == "__main__":
+    img_path_list = get_image_path_list(dataset_num="003")
+    layer_nums = [1, 4, 7, 11, 15]
 
 
+    # K.function used
+    model = VGG16(weights="imagenet", include_top=False)
+    output_layers = [model.layers[i].output for i in layer_nums]
+    get_select_layer_output = K.function([model.layers[0].input], output_layers)
 
+    print(len(get_select_layer_output([preprocess_image(img_path_list[0]), ])))
 
-
+    # model_b = set_image_to_model(preprocess_image(img_path_list[0]))
+    # outputs = extract_output(model_b)
+    # print(K.eval(outputs)[0][0])
