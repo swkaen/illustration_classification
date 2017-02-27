@@ -35,6 +35,7 @@ def extract_output(model):
 
 def gram_matrix(output):
     features = K.batch_flatten(K.permute_dimensions(output, (2, 0, 1)))
+    print(features)
     gram = K.dot(features, K.transpose(features))
     gram = K.eval(gram)
     return gram
@@ -111,7 +112,7 @@ def main():
             #    conn.close()
 
 if __name__ == "__main__":
-    img_path_list = get_image_path_list(dataset_num="003")
+    img_path_list = get_image_path_list(dataset_num="008")
     layer_nums = [1, 4, 7, 11, 15]
 
 
@@ -119,8 +120,12 @@ if __name__ == "__main__":
     model = VGG16(weights="imagenet", include_top=False)
     output_layers = [model.layers[i].output for i in layer_nums]
     get_select_layer_output = K.function([model.layers[0].input], output_layers)
+    for index, img_path in enumerate(img_path_list):
+        outputs = get_select_layer_output([preprocess_image(img_path), ])
+        a = extract_style_vector(gram_matrix(outputs[0][0]))
+        print(index)
 
-    print(len(get_select_layer_output([preprocess_image(img_path_list[0]), ])))
+
 
     # model_b = set_image_to_model(preprocess_image(img_path_list[0]))
     # outputs = extract_output(model_b)
