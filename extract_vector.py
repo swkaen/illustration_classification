@@ -9,6 +9,8 @@ from keras.applications.vgg16 import preprocess_input
 from keras import backend as K
 from glob import glob
 from keras.layers import Input
+import tensorflow as tf
+import gc
 
 
 def preprocess_image(img_path):
@@ -34,8 +36,10 @@ def extract_output(model):
 
 
 def gram_matrix(output):
-    features = K.batch_flatten(K.permute_dimensions(output, (2, 0, 1)))
-    print(features)
+    #val = np.transpose(output, (2, 0, 1))
+    #    print(val.shape)
+    permuted = K.permute_dimensions(output, (2, 0, 1))
+    features = K.batch_flatten(permuted)
     gram = K.dot(features, K.transpose(features))
     gram = K.eval(gram)
     return gram
@@ -51,7 +55,7 @@ def get_image_path_list(dataset_num):
     if len(dataset_num) != 3:
         print('Usage: dataset_001 -> 001')
         pass
-    img_path_list = glob("../datasets" + "/dataset_" + dataset_num + "/*.jpg")
+    img_path_list = glob("./datasets" + "/dataset_" + dataset_num + "/*.jpg")
     return img_path_list
 
 
@@ -59,6 +63,7 @@ def id_writer(img_id):
     path = img_id + "\n"
     with open('idlist', "a") as file:
         file.write(path)
+
 
 def main():
     data_count = 0
@@ -115,17 +120,17 @@ if __name__ == "__main__":
     img_path_list = get_image_path_list(dataset_num="008")
     layer_nums = [1, 4, 7, 11, 15]
 
-
     # K.function used
     model = VGG16(weights="imagenet", include_top=False)
     output_layers = [model.layers[i].output for i in layer_nums]
     get_select_layer_output = K.function([model.layers[0].input], output_layers)
     for index, img_path in enumerate(img_path_list):
         outputs = get_select_layer_output([preprocess_image(img_path), ])
-        a = extract_style_vector(gram_matrix(outputs[0][0]))
+    #    a = [extract_style_vector(gram_matrix(output[0])) for output in outputs]
+        a = extract_style_vector(gram_matrix(outputs[1][0]))
         print(index)
-
-
+        print(len(tf.global_variables()))
+        print(len(gc.get_objects()))
 
     # model_b = set_image_to_model(preprocess_image(img_path_list[0]))
     # outputs = extract_output(model_b)
