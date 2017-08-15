@@ -119,7 +119,6 @@ def main():
 if __name__ == "__main__":
     img_path_list = get_image_path_list(dataset_num="008")
     layer_nums = [1, 4, 7, 11, 15]
-
     # K.function used
     model = VGG16(weights="imagenet", include_top=False)
     output_layers = [model.layers[i].output for i in layer_nums]
