@@ -127,9 +127,10 @@ if __name__ == "__main__":
         outputs = get_select_layer_output([preprocess_image(img_path), ])
     #    a = [extract_style_vector(gram_matrix(output[0])) for output in outputs]
         a = extract_style_vector(gram_matrix(outputs[1][0]))
-        print(index)
-        print(len(tf.global_variables()))
-        print(len(gc.get_objects()))
+        print(len(a))
+        #print(index)
+        #print(len(tf.global_variables()))
+        #print(len(gc.get_objects()))
 
     # model_b = set_image_to_model(preprocess_image(img_path_list[0]))
     # outputs = extract_output(model_b)
